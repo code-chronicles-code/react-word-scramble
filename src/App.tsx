@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import styles from "./App.module.css";
 import useAppState from "./useAppState";
@@ -6,13 +6,39 @@ import useAppState from "./useAppState";
 function App() {
   const [state, dispatch] = useAppState();
 
+  useEffect(() => {
+    fetch("fruits.txt")
+      .then((response) => response.text())
+      .then((text) => {
+        setTimeout(
+          () =>
+            dispatch({
+              type: "load-data",
+              wordPack: text
+                .split("\n")
+                .map((word) => word.toUpperCase().trim())
+                .filter(Boolean),
+            }),
+          3000,
+        );
+      });
+  }, [dispatch]);
+
   let content = null;
   switch (state.phase) {
     case "pre-game": {
+      if (state.wordPack == null) {
+        content = <>Loading data...</>;
+        break;
+      }
+
       content = (
-        <button onClick={() => dispatch({ type: "start-game" })}>
-          Begin new game
-        </button>
+        <>
+          <div>Word pack is ready with {state.wordPack.length} words!</div>
+          <button onClick={() => dispatch({ type: "start-game" })}>
+            Begin new game
+          </button>
+        </>
       );
       break;
     }
