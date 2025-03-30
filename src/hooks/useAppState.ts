@@ -1,8 +1,8 @@
 import { useReducer, type Dispatch } from "react";
 
-import getRandomElement from "../util/getRandomElement";
 import normalizeString from "../util/normalizeString";
 import scrambleString from "../util/scrambleString";
+import shuffleInfinitely from "../util/shuffleInfinitely";
 
 export type Round = Readonly<{
   wordUnscrambled: string;
@@ -11,11 +11,11 @@ export type Round = Readonly<{
 }>;
 
 function getNewRound(
-  wordPack: readonly string[],
+  getNextWord: () => string,
   bannedWords: readonly string[],
 ): Round {
   while (true) {
-    const word = getRandomElement(wordPack);
+    const word = getNextWord();
 
     try {
       return {
@@ -41,6 +41,7 @@ type InGameState = Readonly<{
   guess: string;
   bannedWords: readonly string[];
   wordPack: readonly string[];
+  getNextWord: () => string;
 }>;
 
 type PostGameState = {
@@ -55,7 +56,7 @@ export type State = PreGameState | InGameState | PostGameState;
 function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
   return {
     ...state,
-    currentRound: getNewRound(state.wordPack, state.bannedWords),
+    currentRound: getNewRound(state.getNextWord, state.bannedWords),
     finishedRounds: [
       ...state.finishedRounds,
       { ...state.currentRound, status: didGuess ? "guessed" : "skipped" },
@@ -131,13 +132,15 @@ export function reducer(state: State, action: Action): State {
         return state;
       }
 
+      const getNextWord = shuffleInfinitely(wordPack);
       return {
         phase: "in-game",
-        currentRound: getNewRound(wordPack, bannedWords),
+        currentRound: getNewRound(getNextWord, bannedWords),
         finishedRounds: [],
         guess: "",
         bannedWords,
         wordPack,
+        getNextWord,
       };
     }
 
