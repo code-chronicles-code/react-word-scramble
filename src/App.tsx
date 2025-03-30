@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import styles from "./App.module.css";
 import useAppState from "./useAppState";
 import normalizeString from "./util/normalizeString";
+import pluralize from "./util/pluralize";
 
 function App() {
   const [state, dispatch] = useAppState();
@@ -43,6 +44,7 @@ function App() {
               Guess:
               <input
                 type="text"
+                autoFocus
                 value={state.guess}
                 onChange={(ev) =>
                   dispatch({ type: "update-guess", newGuess: ev.target.value })
@@ -50,6 +52,9 @@ function App() {
               />
             </label>
           </div>
+          <button onClick={() => dispatch({ type: "end-game" })}>
+            End game
+          </button>
         </div>
       );
     }
@@ -57,7 +62,7 @@ function App() {
     case "post-game": {
       return (
         <div className={styles.container}>
-          <div>Nice game! You guessed {state.goal}</div>
+          <div>You guessed {pluralize(state.wordsGuessed, "word")}.</div>
           <button onClick={() => dispatch({ type: "start-game" })}>
             Begin new game
           </button>

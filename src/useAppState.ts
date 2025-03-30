@@ -12,11 +12,12 @@ export type State = Readonly<
       phase: "in-game";
       goal: string;
       guess: string;
+      wordsGuessed: number;
       wordPack: readonly string[];
     }
   | {
       phase: "post-game";
-      goal: string;
+      wordsGuessed: number;
       wordPack: readonly string[];
     }
 >;
@@ -28,10 +29,24 @@ export function getInitialState(): State {
 export type Action =
   | { type: "load-data"; wordPack: readonly string[] }
   | { type: "start-game" }
-  | { type: "update-guess"; newGuess: string };
+  | { type: "update-guess"; newGuess: string }
+  | { type: "end-game" };
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "end-game": {
+      // No-op if not in a game.
+      if (state.phase !== "in-game") {
+        return state;
+      }
+
+      return {
+        phase: "post-game",
+        wordsGuessed: state.wordsGuessed,
+        wordPack: state.wordPack,
+      };
+    }
+
     case "load-data": {
       // No-op if not in pre-game phase.
       if (state.phase !== "pre-game") {
@@ -57,6 +72,7 @@ export function reducer(state: State, action: Action): State {
         phase: "in-game",
         goal: getRandomElement(wordPack),
         guess: "",
+        wordsGuessed: 0,
         wordPack,
       };
     }
@@ -69,9 +85,10 @@ export function reducer(state: State, action: Action): State {
 
       if (normalizeString(action.newGuess) === state.goal) {
         return {
-          phase: "post-game",
-          goal: state.goal,
-          wordPack: state.wordPack,
+          ...state,
+          wordsGuessed: state.wordsGuessed + 1,
+          goal: getRandomElement(state.wordPack),
+          guess: "",
         };
       }
 
