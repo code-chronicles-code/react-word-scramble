@@ -10,11 +10,32 @@
   justify-content: flex-start;
 }
 
+.guessContainer {
+  min-width: 25vw;
+  position: relative;
+}
+
 .guess {
-  min-width: 50%;
-  max-width: 100%;
-  text-align: center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: transparent;
+  background: transparent;
+  caret-color: black;
+}
+
+.guess,
+.guessUnderlay {
   text-transform: uppercase;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+
+.guessUnderlay {
+  padding: 1vmin 2vmin;
+  white-space: pre-wrap;
+  line-height: 150%;
 }
 
 .guessLabel {

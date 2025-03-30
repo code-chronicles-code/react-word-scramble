@@ -10,7 +10,6 @@ button {
   -moz-osx-font-smoothing: grayscale;
 
   font-size: calc(max(12px, 1.5vw));
-  line-height: 150%;
 }
 
 html,
@@ -19,10 +18,6 @@ body,
   padding: 0;
   height: 100vh;
   width: 100vw;
-}
-
-button {
-  padding: 5px 20px;
 }
 
 .word,
@@ -60,6 +55,7 @@ input {
   padding: 1vmin 2vmin;
 
   overflow: hidden;
+  line-height: 150%;
 }
 
 button {
@@ -70,4 +66,8 @@ button {
 button:hover,
 button:focus {
   background: color-mix(in oklch, cornflowerblue 45%, transparent);
+}
+
+* {
+  box-sizing: border-box;
 }

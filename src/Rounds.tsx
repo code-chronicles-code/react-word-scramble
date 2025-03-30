@@ -7,9 +7,10 @@ import Word from "./Word";
 type Props = {
   finishedRounds: readonly Round[];
   currentRound?: Round;
+  guess?: string;
 };
 
-export default function Rounds({ currentRound, finishedRounds }: Props) {
+export default function Rounds({ currentRound, finishedRounds, guess }: Props) {
   return (
     <div className={`${styles.container} centered-container flex-col`}>
       <div className={`${styles.innerContainer} centered-container flex-col`}>
@@ -27,7 +28,13 @@ export default function Rounds({ currentRound, finishedRounds }: Props) {
           />
         ))}
       </div>
-      {currentRound && <Word word={currentRound.wordScrambled} />}
+      {currentRound && (
+        <Word
+          word={currentRound.wordScrambled}
+          highlightInReference
+          referenceWord={guess?.toUpperCase()}
+        />
+      )}
     </div>
   );
 }

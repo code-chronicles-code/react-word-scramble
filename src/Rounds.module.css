@@ -15,6 +15,6 @@
 
 .container,
 .innerContainer {
-  gap: 1.5vw;
+  gap: 1vw;
   overflow: hidden;
 }

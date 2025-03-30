@@ -6,19 +6,26 @@ import useAppState, { type Round } from "./hooks/useAppState";
 import useLoadData from "./hooks/useLoadData";
 import countIf from "./util/countIf";
 import pluralize from "./util/pluralize";
+import Word from "./Word";
 
 function Container({
   children,
-  finishedRounds = [],
   currentRound,
+  finishedRounds = [],
+  guess,
 }: {
   children: ReactNode;
   currentRound?: Round;
   finishedRounds?: readonly Round[];
+  guess?: string;
 }) {
   return (
     <div className={`${styles.container} centered-container flex-col`}>
-      <Rounds finishedRounds={finishedRounds} currentRound={currentRound} />
+      <Rounds
+        finishedRounds={finishedRounds}
+        currentRound={currentRound}
+        guess={guess}
+      />
       {children}
     </div>
   );
@@ -75,18 +82,35 @@ export default function App() {
         <Container
           finishedRounds={state.finishedRounds}
           currentRound={state.currentRound}
+          guess={state.guess}
         >
           <label className={`${styles.guessLabel} centered-container flex-col`}>
-            <input
-              ref={guessInputRef}
-              type="text"
-              autoFocus
-              className={`${styles.guess} word`}
-              value={state.guess}
-              onChange={(ev) =>
-                dispatch({ type: "update-guess", newGuess: ev.target.value })
-              }
-            />
+            <div className={styles.guessContainer}>
+              <div
+                className={`${styles.guessUnderlay} word centered-container flex-col`}
+              >
+                <Word
+                  word={
+                    state.guess.toUpperCase() ||
+                    // Make sure the container is never empty, so that it takes some vertical space.
+                    " "
+                  }
+                  highlightInReference
+                  highlightOutOfReference
+                  referenceWord={state.currentRound.wordScrambled}
+                />
+              </div>
+              <input
+                ref={guessInputRef}
+                type="text"
+                autoFocus
+                className={`${styles.guess} word`}
+                value={state.guess}
+                onChange={(ev) =>
+                  dispatch({ type: "update-guess", newGuess: ev.target.value })
+                }
+              />
+            </div>
             <div>Unscramble the word!</div>
           </label>
           <div className={`${styles.buttonRow} centered-container flex-row`}>
