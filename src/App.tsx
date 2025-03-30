@@ -1,23 +1,13 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import styles from "./App.module.css";
-import useAppState from "./useAppState";
-import normalizeString from "./util/normalizeString";
+import useAppState from "./hooks/useAppState";
+import useLoadData from "./hooks/useLoadData";
 import pluralize from "./util/pluralize";
 
 function App() {
   const [state, dispatch] = useAppState();
-
-  useEffect(() => {
-    fetch("fruits.txt")
-      .then((response) => response.text())
-      .then((text) => {
-        dispatch({
-          type: "load-data",
-          wordPack: text.split("\n").map(normalizeString).filter(Boolean),
-        });
-      });
-  }, [dispatch]);
+  useLoadData(dispatch);
 
   switch (state.phase) {
     case "pre-game": {

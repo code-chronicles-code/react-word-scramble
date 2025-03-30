@@ -1,7 +1,7 @@
 import { useReducer, type Dispatch } from "react";
 
-import getRandomElement from "./util/getRandomElement";
-import normalizeString from "./util/normalizeString";
+import getRandomElement from "../util/getRandomElement";
+import normalizeString from "../util/normalizeString";
 
 export type State = Readonly<
   | {
