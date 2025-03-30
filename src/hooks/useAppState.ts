@@ -4,34 +4,54 @@ import getRandomElement from "../util/getRandomElement";
 import normalizeString from "../util/normalizeString";
 import scrambleString from "../util/scrambleString";
 
-function getGoalAndScrambledGoal(wordPack: readonly string[]): {
-  goal: string;
-  scrambledGoal: string;
-} {
-  const goal = getRandomElement(wordPack);
-  const scrambledGoal = scrambleString(goal);
-  return { goal, scrambledGoal };
+type Round = Readonly<{
+  wordUnscrambled: string;
+  wordScrambled: string;
+  didGuess: boolean;
+}>;
+
+function getNewRound(wordPack: readonly string[]): Round {
+  const word = getRandomElement(wordPack);
+
+  return {
+    wordUnscrambled: word,
+    wordScrambled: scrambleString(word),
+    didGuess: false,
+  };
 }
 
-export type State = Readonly<
-  | {
-      phase: "pre-game";
-      wordPack: readonly string[] | null;
-    }
-  | {
-      phase: "in-game";
-      goal: string;
-      scrambledGoal: string;
-      guess: string;
-      wordsGuessed: number;
-      wordPack: readonly string[];
-    }
-  | {
-      phase: "post-game";
-      wordsGuessed: number;
-      wordPack: readonly string[];
-    }
->;
+type PreGameState = Readonly<{
+  phase: "pre-game";
+  wordPack: readonly string[] | null;
+}>;
+
+type InGameState = Readonly<{
+  phase: "in-game";
+  currentRound: Round;
+  finishedRounds: readonly Round[];
+  guess: string;
+  wordPack: readonly string[];
+}>;
+
+type PostGameState = {
+  phase: "post-game";
+  finishedRounds: readonly Round[];
+  wordPack: readonly string[];
+};
+
+export type State = PreGameState | InGameState | PostGameState;
+
+function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
+  return {
+    ...state,
+    currentRound: getNewRound(state.wordPack),
+    finishedRounds: [
+      ...state.finishedRounds,
+      didGuess ? { ...state.currentRound, didGuess: true } : state.currentRound,
+    ],
+    guess: "",
+  };
+}
 
 export function getInitialState(): State {
   return { phase: "pre-game", wordPack: null };
@@ -41,6 +61,7 @@ export type Action =
   | { type: "load-data"; wordPack: readonly string[] }
   | { type: "start-game" }
   | { type: "update-guess"; newGuess: string }
+  | { type: "skip-word" }
   | { type: "end-game" };
 
 export function reducer(state: State, action: Action): State {
@@ -53,7 +74,7 @@ export function reducer(state: State, action: Action): State {
 
       return {
         phase: "post-game",
-        wordsGuessed: state.wordsGuessed,
+        finishedRounds: [...state.finishedRounds, state.currentRound],
         wordPack: state.wordPack,
       };
     }
@@ -65,6 +86,15 @@ export function reducer(state: State, action: Action): State {
       }
 
       return { ...state, wordPack: action.wordPack };
+    }
+
+    case "skip-word": {
+      // No-op if not in a game.
+      if (state.phase !== "in-game") {
+        return state;
+      }
+
+      return getNewRoundState(state, false);
     }
 
     case "start-game": {
@@ -81,10 +111,10 @@ export function reducer(state: State, action: Action): State {
 
       return {
         phase: "in-game",
+        currentRound: getNewRound(wordPack),
+        finishedRounds: [],
         guess: "",
-        wordsGuessed: 0,
         wordPack,
-        ...getGoalAndScrambledGoal(wordPack),
       };
     }
 
@@ -94,13 +124,10 @@ export function reducer(state: State, action: Action): State {
         return state;
       }
 
-      if (normalizeString(action.newGuess) === state.goal) {
-        return {
-          ...state,
-          wordsGuessed: state.wordsGuessed + 1,
-          guess: "",
-          ...getGoalAndScrambledGoal(state.wordPack),
-        };
+      if (
+        normalizeString(action.newGuess) === state.currentRound.wordUnscrambled
+      ) {
+        return getNewRoundState(state, true);
       }
 
       return { ...state, guess: action.newGuess };

@@ -3,6 +3,7 @@ import React from "react";
 import styles from "./App.module.css";
 import useAppState from "./hooks/useAppState";
 import useLoadData from "./hooks/useLoadData";
+import countIf from "./util/countIf";
 import pluralize from "./util/pluralize";
 
 function App() {
@@ -28,7 +29,8 @@ function App() {
     case "in-game": {
       return (
         <div className={styles.container}>
-          <div>Guess the word: {state.scrambledGoal}</div>
+          <pre>{JSON.stringify(state.finishedRounds, null, 2)}</pre>
+          <div>Guess the word: {state.currentRound.wordScrambled}</div>
           <div>
             <label>
               Guess:
@@ -42,6 +44,9 @@ function App() {
               />
             </label>
           </div>
+          <button onClick={() => dispatch({ type: "skip-word" })}>
+            Skip word
+          </button>
           <button onClick={() => dispatch({ type: "end-game" })}>
             End game
           </button>
@@ -50,9 +55,19 @@ function App() {
     }
 
     case "post-game": {
+      const wordsGuessed = countIf(
+        state.finishedRounds,
+        (round) => round.didGuess,
+      );
+      const wordsSkipped = state.finishedRounds.length - wordsGuessed;
+
       return (
         <div className={styles.container}>
-          <div>You guessed {pluralize(state.wordsGuessed, "word")}.</div>
+          <pre>{JSON.stringify(state.finishedRounds, null, 2)}</pre>
+          <div>
+            You guessed {pluralize(wordsGuessed, "word")} and skipped{" "}
+            {pluralize(wordsSkipped, "word")}.
+          </div>
           <button onClick={() => dispatch({ type: "start-game" })}>
             Begin new game
           </button>
