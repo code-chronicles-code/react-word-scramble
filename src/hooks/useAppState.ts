@@ -4,7 +4,7 @@ import getRandomElement from "../util/getRandomElement";
 import normalizeString from "../util/normalizeString";
 import scrambleString from "../util/scrambleString";
 
-type Round = Readonly<{
+export type Round = Readonly<{
   wordUnscrambled: string;
   wordScrambled: string;
   didGuess: boolean;

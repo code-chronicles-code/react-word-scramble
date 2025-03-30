@@ -1,0 +1,12 @@
+.container {
+  gap: 1.5vw;
+  height: 35%;
+  overflow: hidden;
+
+  mask-image: linear-gradient(transparent, rgb(0 0 0 / 100%));
+}
+
+/* double specificity to override other style */
+.container.container {
+  justify-content: flex-end;
+}

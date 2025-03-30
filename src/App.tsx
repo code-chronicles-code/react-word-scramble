@@ -1,83 +1,93 @@
-import React from "react";
+import React, { type ReactNode } from "react";
 
 import styles from "./App.module.css";
+import FinishedRounds from "./FinishedRounds";
 import useAppState from "./hooks/useAppState";
 import useLoadData from "./hooks/useLoadData";
 import countIf from "./util/countIf";
 import pluralize from "./util/pluralize";
 
-function App() {
+function Container({ children }: { children: ReactNode }) {
+  return (
+    <div className={`${styles.container} centered-container flex-col`}>
+      {children}
+    </div>
+  );
+}
+
+export default function App() {
   const [state, dispatch] = useAppState();
   useLoadData(dispatch);
 
   switch (state.phase) {
     case "pre-game": {
       if (state.wordPack == null) {
-        return <div className={styles.container}>Loading data...</div>;
+        return <Container>Loading data...</Container>;
       }
 
       return (
-        <div className={styles.container}>
+        <Container>
           <div>Word pack is ready with {state.wordPack.length} words!</div>
           <button onClick={() => dispatch({ type: "start-game" })}>
-            Begin new game
+            Begin
           </button>
-        </div>
+        </Container>
       );
     }
 
     case "in-game": {
       return (
-        <div className={styles.container}>
-          <pre>{JSON.stringify(state.finishedRounds, null, 2)}</pre>
-          <div>Guess the word: {state.currentRound.wordScrambled}</div>
-          <div>
-            <label>
-              Guess:
-              <input
-                type="text"
-                autoFocus
-                value={state.guess}
-                onChange={(ev) =>
-                  dispatch({ type: "update-guess", newGuess: ev.target.value })
-                }
-              />
-            </label>
+        <Container>
+          <FinishedRounds
+            rounds={state.finishedRounds}
+            currentRound={state.currentRound}
+          />
+          <label className={`${styles.guessLabel} centered-container flex-col`}>
+            <input
+              type="text"
+              autoFocus
+              className={`${styles.guess} word`}
+              value={state.guess}
+              onChange={(ev) =>
+                dispatch({ type: "update-guess", newGuess: ev.target.value })
+              }
+            />
+            <div>Guess the word!</div>
+          </label>
+          <div className={`${styles.buttonRow} centered-container flex-row`}>
+            <button onClick={() => dispatch({ type: "skip-word" })}>
+              Skip
+            </button>
+            <button onClick={() => dispatch({ type: "end-game" })}>
+              End game
+            </button>
           </div>
-          <button onClick={() => dispatch({ type: "skip-word" })}>
-            Skip word
-          </button>
-          <button onClick={() => dispatch({ type: "end-game" })}>
-            End game
-          </button>
-        </div>
+        </Container>
       );
     }
 
     case "post-game": {
       const wordsGuessed = countIf(
         state.finishedRounds,
-        (round) => round.didGuess,
+        (round) => round.didGuess
       );
       const wordsSkipped = state.finishedRounds.length - wordsGuessed;
 
       return (
-        <div className={styles.container}>
-          <pre>{JSON.stringify(state.finishedRounds, null, 2)}</pre>
+        <Container>
+          <FinishedRounds rounds={state.finishedRounds} />
           <div>
             You guessed {pluralize(wordsGuessed, "word")} and skipped{" "}
             {pluralize(wordsSkipped, "word")}.
           </div>
           <button onClick={() => dispatch({ type: "start-game" })}>
-            Begin new game
+            Play again
           </button>
-        </div>
+        </Container>
       );
     }
   }
 
   // This should never happen!
-  return <div className={styles.container}>Something unexpected happened!</div>;
+  return <Container>Something unexpected happened!</Container>;
 }
-
-export default App;
