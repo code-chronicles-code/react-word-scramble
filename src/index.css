@@ -64,6 +64,7 @@ input {
 
 button {
   background: color-mix(in oklch, cornflowerblue 25%, transparent);
+  user-select: none;
 }
 
 button:hover,

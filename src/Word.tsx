@@ -11,12 +11,9 @@ export default function Word({ word, color = "neutral" }: Props) {
   return (
     <div
       className={[
-        color === "positive"
-          ? styles.textPositive
-          : color === "negative"
-            ? styles.textNegative
-            : null,
         "word",
+        color === "positive" && styles.textPositive,
+        color === "negative" && styles.textNegative,
       ]
         .filter(Boolean)
         .join(" ")}

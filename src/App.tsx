@@ -80,9 +80,12 @@ export default function App() {
     case "post-game": {
       const wordsGuessed = countIf(
         state.finishedRounds,
-        (round) => round.didGuess,
+        (round) => round.status === "guessed",
       );
-      const wordsSkipped = state.finishedRounds.length - wordsGuessed;
+      const wordsSkipped = countIf(
+        state.finishedRounds,
+        (round) => round.status === "skipped",
+      );
 
       return (
         <Container finishedRounds={state.finishedRounds}>

@@ -7,7 +7,7 @@ import scrambleString from "../util/scrambleString";
 export type Round = Readonly<{
   wordUnscrambled: string;
   wordScrambled: string;
-  didGuess: boolean;
+  status?: "guessed" | "skipped";
 }>;
 
 function getNewRound(
@@ -21,7 +21,6 @@ function getNewRound(
       return {
         wordUnscrambled: word,
         wordScrambled: scrambleString(word, bannedWords),
-        didGuess: false,
       };
     } catch {
       console.warn("Struggled to scramble " + word);
@@ -59,7 +58,7 @@ function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
     currentRound: getNewRound(state.wordPack, state.bannedWords),
     finishedRounds: [
       ...state.finishedRounds,
-      didGuess ? { ...state.currentRound, didGuess: true } : state.currentRound,
+      { ...state.currentRound, status: didGuess ? "guessed" : "skipped" },
     ],
     guess: "",
   };
