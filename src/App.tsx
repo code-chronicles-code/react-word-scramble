@@ -28,7 +28,7 @@ function App() {
     case "in-game": {
       return (
         <div className={styles.container}>
-          <div>Goal: {state.goal}</div>
+          <div>Guess the word: {state.scrambledGoal}</div>
           <div>
             <label>
               Guess:

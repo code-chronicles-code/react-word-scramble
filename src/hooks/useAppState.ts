@@ -2,6 +2,16 @@ import { useReducer, type Dispatch } from "react";
 
 import getRandomElement from "../util/getRandomElement";
 import normalizeString from "../util/normalizeString";
+import scrambleString from "../util/scrambleString";
+
+function getGoalAndScrambledGoal(wordPack: readonly string[]): {
+  goal: string;
+  scrambledGoal: string;
+} {
+  const goal = getRandomElement(wordPack);
+  const scrambledGoal = scrambleString(goal);
+  return { goal, scrambledGoal };
+}
 
 export type State = Readonly<
   | {
@@ -11,6 +21,7 @@ export type State = Readonly<
   | {
       phase: "in-game";
       goal: string;
+      scrambledGoal: string;
       guess: string;
       wordsGuessed: number;
       wordPack: readonly string[];
@@ -70,10 +81,10 @@ export function reducer(state: State, action: Action): State {
 
       return {
         phase: "in-game",
-        goal: getRandomElement(wordPack),
         guess: "",
         wordsGuessed: 0,
         wordPack,
+        ...getGoalAndScrambledGoal(wordPack),
       };
     }
 
@@ -87,8 +98,8 @@ export function reducer(state: State, action: Action): State {
         return {
           ...state,
           wordsGuessed: state.wordsGuessed + 1,
-          goal: getRandomElement(state.wordPack),
           guess: "",
+          ...getGoalAndScrambledGoal(state.wordPack),
         };
       }
 
