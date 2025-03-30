@@ -1,4 +1,4 @@
-import React, { type ReactNode, useRef } from "react";
+import React, { type ReactNode, useCallback, useEffect, useRef } from "react";
 
 import styles from "./App.module.css";
 import Rounds from "./Rounds";
@@ -29,6 +29,27 @@ export default function App() {
   useLoadData(dispatch);
 
   const guessInputRef = useRef<HTMLInputElement | null>(null);
+
+  const skipWord = useCallback(() => {
+    dispatch({ type: "skip-word" });
+    guessInputRef.current?.focus();
+  }, [dispatch]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    document.addEventListener(
+      "keydown",
+      (ev) => {
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          skipWord();
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    return () => controller.abort();
+  }, [skipWord]);
 
   switch (state.phase) {
     case "pre-game": {
@@ -69,14 +90,7 @@ export default function App() {
             <div>Unscramble the word!</div>
           </label>
           <div className={`${styles.buttonRow} centered-container flex-row`}>
-            <button
-              onClick={() => {
-                dispatch({ type: "skip-word" });
-                guessInputRef.current?.focus();
-              }}
-            >
-              Skip
-            </button>
+            <button onClick={skipWord}>Skip</button>
             <button onClick={() => dispatch({ type: "end-game" })}>
               End game
             </button>
