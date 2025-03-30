@@ -1,12 +1,20 @@
 .container {
   height: 35%;
-  mask-image: linear-gradient(transparent, rgb(0 0 0 / 100%));
-  overflow: hidden;
-
-  gap: 1.5vw;
 }
 
 /* double specificity to override other style */
-.container.container {
+.container.container,
+.innerContainer.innerContainer {
   justify-content: flex-end;
+}
+
+.innerContainer {
+  flex-grow: 1;
+  mask-image: linear-gradient(transparent, rgb(0 0 0 / 100%));
+}
+
+.container,
+.innerContainer {
+  gap: 1.5vw;
+  overflow: hidden;
 }
