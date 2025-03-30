@@ -1,10 +1,10 @@
-import React, { useReducer } from "react";
+import React from "react";
 
 import styles from "./App.module.css";
-import { getInitialState, reducer } from "./appState";
+import useAppState from "./useAppState";
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, null, getInitialState);
+  const [state, dispatch] = useAppState();
 
   let content = null;
   switch (state.phase) {

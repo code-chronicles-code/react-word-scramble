@@ -1,3 +1,5 @@
+import { useReducer, type Dispatch } from "react";
+
 import getRandomWord from "./getRandomWord";
 
 export type State =
@@ -52,4 +54,8 @@ export function reducer(state: State, action: Action): State {
   }
 
   return state;
+}
+
+export default function useAppState(): [State, Dispatch<Action>] {
+  return useReducer(reducer, null, getInitialState);
 }
