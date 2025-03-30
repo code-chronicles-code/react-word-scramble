@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useRef } from "react";
 
 import styles from "./App.module.css";
 import Rounds from "./Rounds";
@@ -28,6 +28,8 @@ export default function App() {
   const [state, dispatch] = useAppState();
   useLoadData(dispatch);
 
+  const guessInputRef = useRef<HTMLInputElement | null>(null);
+
   switch (state.phase) {
     case "pre-game": {
       if (state.wordPack == null) {
@@ -55,6 +57,7 @@ export default function App() {
         >
           <label className={`${styles.guessLabel} centered-container flex-col`}>
             <input
+              ref={guessInputRef}
               type="text"
               autoFocus
               className={`${styles.guess} word`}
@@ -66,7 +69,12 @@ export default function App() {
             <div>Unscramble the word!</div>
           </label>
           <div className={`${styles.buttonRow} centered-container flex-row`}>
-            <button onClick={() => dispatch({ type: "skip-word" })}>
+            <button
+              onClick={() => {
+                dispatch({ type: "skip-word" });
+                guessInputRef.current?.focus();
+              }}
+            >
               Skip
             </button>
             <button onClick={() => dispatch({ type: "end-game" })}>
