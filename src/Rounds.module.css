@@ -1,9 +1,9 @@
 .container {
-  gap: 1.5vw;
   height: 35%;
+  mask-image: linear-gradient(transparent, rgb(0 0 0 / 100%));
   overflow: hidden;
 
-  mask-image: linear-gradient(transparent, rgb(0 0 0 / 100%));
+  gap: 1.5vw;
 }
 
 /* double specificity to override other style */

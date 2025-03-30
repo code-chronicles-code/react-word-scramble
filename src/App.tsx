@@ -1,15 +1,24 @@
 import React, { type ReactNode } from "react";
 
 import styles from "./App.module.css";
-import FinishedRounds from "./FinishedRounds";
-import useAppState from "./hooks/useAppState";
+import Rounds from "./Rounds";
+import useAppState, { type Round } from "./hooks/useAppState";
 import useLoadData from "./hooks/useLoadData";
 import countIf from "./util/countIf";
 import pluralize from "./util/pluralize";
 
-function Container({ children }: { children: ReactNode }) {
+function Container({
+  children,
+  finishedRounds = [],
+  currentRound,
+}: {
+  children: ReactNode;
+  currentRound?: Round;
+  finishedRounds?: readonly Round[];
+}) {
   return (
     <div className={`${styles.container} centered-container flex-col`}>
+      <Rounds finishedRounds={finishedRounds} currentRound={currentRound} />
       {children}
     </div>
   );
@@ -27,7 +36,10 @@ export default function App() {
 
       return (
         <Container>
-          <div>Word pack is ready with {state.wordPack.length} words!</div>
+          <div>
+            Word pack (<strong>fruits</strong>) is ready with{" "}
+            {pluralize(state.wordPack.length, "word")}!
+          </div>
           <button onClick={() => dispatch({ type: "start-game" })}>
             Begin
           </button>
@@ -37,11 +49,10 @@ export default function App() {
 
     case "in-game": {
       return (
-        <Container>
-          <FinishedRounds
-            rounds={state.finishedRounds}
-            currentRound={state.currentRound}
-          />
+        <Container
+          finishedRounds={state.finishedRounds}
+          currentRound={state.currentRound}
+        >
           <label className={`${styles.guessLabel} centered-container flex-col`}>
             <input
               type="text"
@@ -52,7 +63,7 @@ export default function App() {
                 dispatch({ type: "update-guess", newGuess: ev.target.value })
               }
             />
-            <div>Guess the word!</div>
+            <div>Unscramble the word!</div>
           </label>
           <div className={`${styles.buttonRow} centered-container flex-row`}>
             <button onClick={() => dispatch({ type: "skip-word" })}>
@@ -69,13 +80,12 @@ export default function App() {
     case "post-game": {
       const wordsGuessed = countIf(
         state.finishedRounds,
-        (round) => round.didGuess
+        (round) => round.didGuess,
       );
       const wordsSkipped = state.finishedRounds.length - wordsGuessed;
 
       return (
-        <Container>
-          <FinishedRounds rounds={state.finishedRounds} />
+        <Container finishedRounds={state.finishedRounds}>
           <div>
             You guessed {pluralize(wordsGuessed, "word")} and skipped{" "}
             {pluralize(wordsSkipped, "word")}.

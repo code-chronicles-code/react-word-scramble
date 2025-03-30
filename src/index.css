@@ -10,7 +10,7 @@ button {
   -moz-osx-font-smoothing: grayscale;
 
   font-size: calc(max(12px, 1.5vw));
-  line-height: 120%;
+  line-height: 150%;
 }
 
 html,
@@ -52,14 +52,18 @@ code {
   flex-direction: row;
 }
 
-button {
-  background: color-mix(in oklch, cornflowerblue 25%, transparent);
+button,
+input {
   border: calc(max(1px, 0.3vmin)) solid black;
   border-radius: 1vmin;
 
   padding: 1vmin 2vmin;
 
   overflow: hidden;
+}
+
+button {
+  background: color-mix(in oklch, cornflowerblue 25%, transparent);
 }
 
 button:hover,
