@@ -1,24 +1,60 @@
-import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
+import React, { useReducer } from "react";
+
+import styles from "./App.module.css";
+import { getInitialState, reducer } from "./appState";
 
 function App() {
+  const [state, dispatch] = useReducer(reducer, null, getInitialState);
+
+  let content = null;
+  switch (state.phase) {
+    case "pre-game": {
+      content = (
+        <button onClick={() => dispatch({ type: "start-game" })}>
+          Begin new game
+        </button>
+      );
+      break;
+    }
+
+    case "in-game": {
+      content = (
+        <>
+          <div>Goal: {state.goal}</div>
+          <div>
+            <label>
+              Guess:
+              <input
+                type="text"
+                value={state.guess}
+                onChange={(ev) =>
+                  dispatch({ type: "update-guess", newGuess: ev.target.value })
+                }
+              />
+            </label>
+          </div>
+        </>
+      );
+      break;
+    }
+
+    case "post-game": {
+      content = (
+        <>
+          <div>Nice game! You guessed {state.goal}</div>
+          <button onClick={() => dispatch({ type: "start-game" })}>
+            Begin new game
+          </button>
+        </>
+      );
+      break;
+    }
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={styles.container}>
+      {content}
+      <pre>{JSON.stringify(state, null, 2)}</pre>
     </div>
   );
 }
