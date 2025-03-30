@@ -40,8 +40,8 @@ export default function App() {
             Word pack (<strong>fruits</strong>) is ready with{" "}
             {pluralize(state.wordPack.length, "word")}!
           </div>
-          <button onClick={() => dispatch({ type: "start-game" })}>
-            Begin
+          <button onClick={() => dispatch({ type: "start-game" })} autoFocus>
+            Play
           </button>
         </Container>
       );
@@ -90,7 +90,7 @@ export default function App() {
             You guessed {pluralize(wordsGuessed, "word")} and skipped{" "}
             {pluralize(wordsSkipped, "word")}.
           </div>
-          <button onClick={() => dispatch({ type: "start-game" })}>
+          <button onClick={() => dispatch({ type: "start-game" })} autoFocus>
             Play again
           </button>
         </Container>
