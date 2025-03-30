@@ -10,18 +10,28 @@ export type Round = Readonly<{
   didGuess: boolean;
 }>;
 
-function getNewRound(wordPack: readonly string[]): Round {
-  const word = getRandomElement(wordPack);
+function getNewRound(
+  wordPack: readonly string[],
+  bannedWords: readonly string[],
+): Round {
+  while (true) {
+    const word = getRandomElement(wordPack);
 
-  return {
-    wordUnscrambled: word,
-    wordScrambled: scrambleString(word),
-    didGuess: false,
-  };
+    try {
+      return {
+        wordUnscrambled: word,
+        wordScrambled: scrambleString(word, bannedWords),
+        didGuess: false,
+      };
+    } catch {
+      console.warn("Struggled to scramble " + word);
+    }
+  }
 }
 
 type PreGameState = Readonly<{
   phase: "pre-game";
+  bannedWords: readonly string[] | null;
   wordPack: readonly string[] | null;
 }>;
 
@@ -30,12 +40,14 @@ type InGameState = Readonly<{
   currentRound: Round;
   finishedRounds: readonly Round[];
   guess: string;
+  bannedWords: readonly string[];
   wordPack: readonly string[];
 }>;
 
 type PostGameState = {
   phase: "post-game";
   finishedRounds: readonly Round[];
+  bannedWords: readonly string[];
   wordPack: readonly string[];
 };
 
@@ -44,7 +56,7 @@ export type State = PreGameState | InGameState | PostGameState;
 function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
   return {
     ...state,
-    currentRound: getNewRound(state.wordPack),
+    currentRound: getNewRound(state.wordPack, state.bannedWords),
     finishedRounds: [
       ...state.finishedRounds,
       didGuess ? { ...state.currentRound, didGuess: true } : state.currentRound,
@@ -54,15 +66,16 @@ function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
 }
 
 export function getInitialState(): State {
-  return { phase: "pre-game", wordPack: null };
+  return { phase: "pre-game", bannedWords: null, wordPack: null };
 }
 
 export type Action =
-  | { type: "load-data"; wordPack: readonly string[] }
-  | { type: "start-game" }
-  | { type: "update-guess"; newGuess: string }
+  | { type: "end-game" }
+  | { type: "load-banned-words"; bannedWords: readonly string[] }
+  | { type: "load-word-pack"; wordPack: readonly string[] }
   | { type: "skip-word" }
-  | { type: "end-game" };
+  | { type: "start-game" }
+  | { type: "update-guess"; newGuess: string };
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -75,13 +88,23 @@ export function reducer(state: State, action: Action): State {
       return {
         phase: "post-game",
         finishedRounds: [...state.finishedRounds, state.currentRound],
+        bannedWords: state.bannedWords,
         wordPack: state.wordPack,
       };
     }
 
-    case "load-data": {
-      // No-op if not in pre-game phase.
-      if (state.phase !== "pre-game") {
+    case "load-banned-words": {
+      // No-op if not in pre-game phase, or if we already have banned words..
+      if (state.phase !== "pre-game" || state.bannedWords) {
+        return state;
+      }
+
+      return { ...state, bannedWords: action.bannedWords };
+    }
+
+    case "load-word-pack": {
+      // No-op if not in pre-game phase, or if we already have a word pack.
+      if (state.phase !== "pre-game" || state.wordPack) {
         return state;
       }
 
@@ -104,16 +127,17 @@ export function reducer(state: State, action: Action): State {
       }
 
       // No-op if data is not loaded.
-      const { wordPack } = state;
-      if (wordPack == null) {
+      const { bannedWords, wordPack } = state;
+      if (bannedWords == null || wordPack == null) {
         return state;
       }
 
       return {
         phase: "in-game",
-        currentRound: getNewRound(wordPack),
+        currentRound: getNewRound(wordPack, bannedWords),
         finishedRounds: [],
         guess: "",
+        bannedWords,
         wordPack,
       };
     }
