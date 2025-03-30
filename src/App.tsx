@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 
 import styles from "./App.module.css";
 import useAppState from "./useAppState";
+import normalizeString from "./util/normalizeString";
 
 function App() {
   const [state, dispatch] = useAppState();
@@ -12,10 +13,7 @@ function App() {
       .then((text) => {
         dispatch({
           type: "load-data",
-          wordPack: text
-            .split("\n")
-            .map((word) => word.toUpperCase().trim())
-            .filter(Boolean),
+          wordPack: text.split("\n").map(normalizeString).filter(Boolean),
         });
       });
   }, [dispatch]);

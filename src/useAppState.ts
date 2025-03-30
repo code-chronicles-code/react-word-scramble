@@ -1,6 +1,7 @@
 import { useReducer, type Dispatch } from "react";
 
 import getRandomElement from "./util/getRandomElement";
+import normalizeString from "./util/normalizeString";
 
 export type State = Readonly<
   | {
@@ -66,7 +67,7 @@ export function reducer(state: State, action: Action): State {
         return state;
       }
 
-      if (action.newGuess === state.goal) {
+      if (normalizeString(action.newGuess) === state.goal) {
         return {
           phase: "post-game",
           goal: state.goal,
