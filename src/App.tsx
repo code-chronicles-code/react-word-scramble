@@ -10,42 +10,35 @@ function App() {
     fetch("fruits.txt")
       .then((response) => response.text())
       .then((text) => {
-        setTimeout(
-          () =>
-            dispatch({
-              type: "load-data",
-              wordPack: text
-                .split("\n")
-                .map((word) => word.toUpperCase().trim())
-                .filter(Boolean),
-            }),
-          3000,
-        );
+        dispatch({
+          type: "load-data",
+          wordPack: text
+            .split("\n")
+            .map((word) => word.toUpperCase().trim())
+            .filter(Boolean),
+        });
       });
   }, [dispatch]);
 
-  let content = null;
   switch (state.phase) {
     case "pre-game": {
       if (state.wordPack == null) {
-        content = <>Loading data...</>;
-        break;
+        return <div className={styles.container}>Loading data...</div>;
       }
 
-      content = (
-        <>
+      return (
+        <div className={styles.container}>
           <div>Word pack is ready with {state.wordPack.length} words!</div>
           <button onClick={() => dispatch({ type: "start-game" })}>
             Begin new game
           </button>
-        </>
+        </div>
       );
-      break;
     }
 
     case "in-game": {
-      content = (
-        <>
+      return (
+        <div className={styles.container}>
           <div>Goal: {state.goal}</div>
           <div>
             <label>
@@ -59,30 +52,24 @@ function App() {
               />
             </label>
           </div>
-        </>
+        </div>
       );
-      break;
     }
 
     case "post-game": {
-      content = (
-        <>
+      return (
+        <div className={styles.container}>
           <div>Nice game! You guessed {state.goal}</div>
           <button onClick={() => dispatch({ type: "start-game" })}>
             Begin new game
           </button>
-        </>
+        </div>
       );
-      break;
     }
   }
 
-  return (
-    <div className={styles.container}>
-      {content}
-      <pre>{JSON.stringify(state, null, 2)}</pre>
-    </div>
-  );
+  // This should never happen!
+  return <div className={styles.container}>Something unexpected happened!</div>;
 }
 
 export default App;

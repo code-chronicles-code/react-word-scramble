@@ -78,6 +78,7 @@ export function reducer(state: State, action: Action): State {
     }
   }
 
+  // This should never happen!
   return state;
 }
 
