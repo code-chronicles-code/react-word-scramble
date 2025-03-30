@@ -2,7 +2,7 @@ import React, { type ReactNode, useCallback, useEffect, useRef } from "react";
 
 import styles from "./App.module.css";
 import Rounds from "./Rounds";
-import useAppState, { type Round } from "./hooks/useAppState";
+import useAppState, { type Round, type WordPack } from "./hooks/useAppState";
 import useLoadData from "./hooks/useLoadData";
 import countIf from "./util/countIf";
 import pluralize from "./util/pluralize";
@@ -27,6 +27,30 @@ function Container({
         guess={guess}
       />
       {children}
+    </div>
+  );
+}
+
+function getSortedWordPacks(wordPacks: Record<string, WordPack>): WordPack[] {
+  return Object.values(wordPacks).sort((a, b) =>
+    a.title.localeCompare(b.title),
+  );
+}
+
+function WordPackSelector({
+  wordPacks,
+  onSelect,
+}: {
+  wordPacks: readonly WordPack[];
+  onSelect: (wordPackId: string) => void;
+}) {
+  return (
+    <div className={styles.wordPackSelector}>
+      {wordPacks.map((wordPack) => (
+        <button onClick={() => onSelect(wordPack.id)} key={wordPack.id}>
+          {wordPack.title} ({pluralize(wordPack.words.length, "item")})
+        </button>
+      ))}
     </div>
   );
 }
@@ -60,19 +84,20 @@ export default function App() {
 
   switch (state.phase) {
     case "pre-game": {
-      if (state.wordPack == null) {
+      const wordPacks = getSortedWordPacks(state.wordPacks);
+      if (state.bannedWords == null || wordPacks.length === 0) {
         return <Container>Loading data...</Container>;
       }
 
       return (
         <Container>
-          <div>
-            Word pack (<strong>fruits</strong>) is ready with{" "}
-            {pluralize(state.wordPack.length, "word")}!
-          </div>
-          <button onClick={() => dispatch({ type: "start-game" })} autoFocus>
-            Play
-          </button>
+          <div>What would you like to unscramble?</div>
+          <WordPackSelector
+            wordPacks={wordPacks}
+            onSelect={(selectedWordPackId) =>
+              dispatch({ type: "start-game", selectedWordPackId })
+            }
+          />
         </Container>
       );
     }
@@ -92,7 +117,7 @@ export default function App() {
                 <Word
                   word={
                     state.guess.toUpperCase() ||
-                    // Make sure the container is never empty, so that it takes some vertical space.
+                    // Make sure the container is never empty, so that it takes up some vertical space.
                     " "
                   }
                   highlightInReference
@@ -107,11 +132,11 @@ export default function App() {
                 className={`${styles.guess} word`}
                 value={state.guess}
                 onChange={(ev) =>
-                  dispatch({ type: "update-guess", newGuess: ev.target.value })
+                  dispatch({ type: "change-guess", newGuess: ev.target.value })
                 }
               />
             </div>
-            <div>Unscramble the word!</div>
+            <div>Unscramble the word or phrase!</div>
           </label>
           <div className={`${styles.buttonRow} centered-container flex-row`}>
             <button onClick={skipWord}>Skip</button>
@@ -124,11 +149,11 @@ export default function App() {
     }
 
     case "post-game": {
-      const wordsGuessed = countIf(
+      const itemsGuessed = countIf(
         state.finishedRounds,
         (round) => round.status === "guessed",
       );
-      const wordsSkipped = countIf(
+      const itemsSkipped = countIf(
         state.finishedRounds,
         (round) => round.status === "skipped",
       );
@@ -136,12 +161,17 @@ export default function App() {
       return (
         <Container finishedRounds={state.finishedRounds}>
           <div>
-            You guessed {pluralize(wordsGuessed, "word")} and skipped{" "}
-            {pluralize(wordsSkipped, "word")}.
+            You guessed {pluralize(itemsGuessed, "item")} and skipped{" "}
+            {pluralize(itemsSkipped, "item")}.
           </div>
-          <button onClick={() => dispatch({ type: "start-game" })} autoFocus>
-            Play again
-          </button>
+          <div />
+          <div>Play again?</div>
+          <WordPackSelector
+            wordPacks={getSortedWordPacks(state.wordPacks)}
+            onSelect={(selectedWordPackId) =>
+              dispatch({ type: "start-game", selectedWordPackId })
+            }
+          />
         </Container>
       );
     }

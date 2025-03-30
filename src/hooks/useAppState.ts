@@ -10,6 +10,12 @@ export type Round = Readonly<{
   status?: "guessed" | "skipped";
 }>;
 
+export type WordPack = Readonly<{
+  id: string;
+  title: string;
+  words: readonly string[];
+}>;
+
 function getNewRound(
   getNextWord: () => string,
   bannedWords: readonly string[],
@@ -31,7 +37,7 @@ function getNewRound(
 type PreGameState = Readonly<{
   phase: "pre-game";
   bannedWords: readonly string[] | null;
-  wordPack: readonly string[] | null;
+  wordPacks: Record<string, WordPack>;
 }>;
 
 type InGameState = Readonly<{
@@ -40,7 +46,7 @@ type InGameState = Readonly<{
   finishedRounds: readonly Round[];
   guess: string;
   bannedWords: readonly string[];
-  wordPack: readonly string[];
+  wordPacks: Record<string, WordPack>;
   getNextWord: () => string;
 }>;
 
@@ -48,7 +54,7 @@ type PostGameState = {
   phase: "post-game";
   finishedRounds: readonly Round[];
   bannedWords: readonly string[];
-  wordPack: readonly string[];
+  wordPacks: Record<string, WordPack>;
 };
 
 export type State = PreGameState | InGameState | PostGameState;
@@ -66,19 +72,38 @@ function getNewRoundState(state: InGameState, didGuess: boolean): InGameState {
 }
 
 export function getInitialState(): State {
-  return { phase: "pre-game", bannedWords: null, wordPack: null };
+  return {
+    phase: "pre-game",
+    bannedWords: null,
+    wordPacks: {},
+  };
 }
 
 export type Action =
+  | { type: "change-guess"; newGuess: string }
   | { type: "end-game" }
   | { type: "load-banned-words"; bannedWords: readonly string[] }
-  | { type: "load-word-pack"; wordPack: readonly string[] }
+  | { type: "load-word-pack"; wordPack: WordPack }
   | { type: "skip-word" }
-  | { type: "start-game" }
-  | { type: "update-guess"; newGuess: string };
+  | { type: "start-game"; selectedWordPackId: string };
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "change-guess": {
+      // No-op if not in a game.
+      if (state.phase !== "in-game") {
+        return state;
+      }
+
+      if (
+        normalizeString(action.newGuess) === state.currentRound.wordUnscrambled
+      ) {
+        return getNewRoundState(state, true);
+      }
+
+      return { ...state, guess: action.newGuess };
+    }
+
     case "end-game": {
       // No-op if not in a game.
       if (state.phase !== "in-game") {
@@ -89,7 +114,7 @@ export function reducer(state: State, action: Action): State {
         phase: "post-game",
         finishedRounds: [...state.finishedRounds, state.currentRound],
         bannedWords: state.bannedWords,
-        wordPack: state.wordPack,
+        wordPacks: state.wordPacks,
       };
     }
 
@@ -103,12 +128,18 @@ export function reducer(state: State, action: Action): State {
     }
 
     case "load-word-pack": {
-      // No-op if not in pre-game phase, or if we already have a word pack.
-      if (state.phase !== "pre-game" || state.wordPack) {
+      // No-op if not in pre-game phase.
+      if (state.phase !== "pre-game") {
         return state;
       }
 
-      return { ...state, wordPack: action.wordPack };
+      return {
+        ...state,
+        wordPacks: {
+          ...state.wordPacks,
+          [action.wordPack.id]: action.wordPack,
+        },
+      };
     }
 
     case "skip-word": {
@@ -126,37 +157,24 @@ export function reducer(state: State, action: Action): State {
         return state;
       }
 
-      // No-op if data is not loaded.
-      const { bannedWords, wordPack } = state;
-      if (bannedWords == null || wordPack == null) {
+      const { wordPacks, bannedWords } = state;
+
+      // No-op if word pack or banned words aren't loaded.
+      const wordPack = wordPacks[action.selectedWordPackId];
+      if (wordPack == null || bannedWords == null) {
         return state;
       }
 
-      const getNextWord = shuffleInfinitely(wordPack);
+      const getNextWord = shuffleInfinitely(wordPack.words);
       return {
         phase: "in-game",
         currentRound: getNewRound(getNextWord, bannedWords),
         finishedRounds: [],
         guess: "",
         bannedWords,
-        wordPack,
         getNextWord,
+        wordPacks,
       };
-    }
-
-    case "update-guess": {
-      // No-op if not in a game.
-      if (state.phase !== "in-game") {
-        return state;
-      }
-
-      if (
-        normalizeString(action.newGuess) === state.currentRound.wordUnscrambled
-      ) {
-        return getNewRoundState(state, true);
-      }
-
-      return { ...state, guess: action.newGuess };
     }
   }
 

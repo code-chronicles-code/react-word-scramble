@@ -1,6 +1,7 @@
 html,
 body,
-button {
+button,
+input {
   margin: 0;
 
   font-family:
@@ -48,7 +49,8 @@ code {
 }
 
 button,
-input {
+input[type="text"],
+select {
   border: calc(max(1px, 0.3vmin)) solid black;
   border-radius: 1vmin;
 
@@ -56,6 +58,11 @@ input {
 
   overflow: hidden;
   line-height: 150%;
+}
+
+input[type="radio"] {
+  aspect-ratio: 1;
+  border: calc(max(1px, 0.3vmin)) solid black;
 }
 
 button {
